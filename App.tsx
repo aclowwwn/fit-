@@ -38,7 +38,6 @@ const generatePlan = (month: number): MealPlanDay[] => {
     return options[day % options.length];
   };
 
-  // Added explicit return type to ensure consistent union type for property 'description'
   const getFebBaby = (day: number): { recipeId: string; name: string; description?: string } => {
     if (day <= 4) return { recipeId: 'baby-herb-chicken', name: 'Soft Chicken & Potato' };
     if (day <= 8) return { recipeId: 'baby-pork-medallion', name: 'Pork & Bean Mash' };
@@ -68,7 +67,6 @@ const generatePlan = (month: number): MealPlanDay[] => {
     const dayIndex = (startDay + d - 1) % 7;
     const dinner = isJan ? getJanMeal(d) : getFebMeal(d);
     const lunch = isJan ? { name: 'Sourdough & Spreads', description: 'Homemade sourdough with assorted spreads.' } : getFebLunch(d);
-    // Explicitly typed 'baby' to avoid property access error on 'description' inside the union
     const baby: { name: string; recipeId: string; description?: string } = isJan 
       ? { name: 'Beef & Root Puree', recipeId: 'baby-beef-veggie', description: 'Mild blend.' } 
       : getFebBaby(d);
@@ -81,7 +79,6 @@ const generatePlan = (month: number): MealPlanDay[] => {
       isCookingDay: dayIndex === 2 || dayIndex === 6,
       lunch,
       dinner: { ...dinner, recipeId: dinner.recipeId },
-      // Fixed: Property access error on baby.description resolved by the explicit typing above
       babyMeal: { ...baby, recipeId: baby.recipeId, description: baby.description || 'Gentle for tiny tummies' },
       snack: getSnack(d),
       husbandWorkout: w.husband,
@@ -121,9 +118,36 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : {};
   });
 
+  // Draft state for modal weight entry
+  const [draftWeights, setDraftWeights] = useState<WeightEntry>({ husband: '', wife: '' });
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(weightData));
   }, [weightData]);
+
+  // Update draft when a day is selected
+  useEffect(() => {
+    if (selectedDay) {
+      const key = `${selectedDay.month}_${selectedDay.date}`;
+      setDraftWeights(weightData[key] || { husband: '', wife: '' });
+      setSaveStatus('idle');
+    }
+  }, [selectedDay, weightData]);
+
+  const handleCommitWeights = () => {
+    if (!selectedDay) return;
+    setSaveStatus('saving');
+    const key = `${selectedDay.month}_${selectedDay.date}`;
+    setTimeout(() => {
+      setWeightData(prev => ({
+        ...prev,
+        [key]: draftWeights
+      }));
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }, 400);
+  };
 
   const monthVibe = activeMonth === 0 ? {
     accent: 'text-amber-500',
@@ -137,17 +161,6 @@ const App: React.FC = () => {
     bg: 'bg-rose-400/10',
     glow: 'shadow-[0_0_50px_rgba(244,63,94,0.1)]',
     name: 'Rose Obsidian'
-  };
-
-  const handleWeightChange = (month: number, date: number, person: keyof WeightEntry, value: string) => {
-    const key = `${month}_${date}`;
-    setWeightData(prev => ({
-      ...prev,
-      [key]: {
-        ...(prev[key] || { husband: '', wife: '' }),
-        [person]: value
-      }
-    }));
   };
 
   const currentRecipe = useMemo(() => {
@@ -168,8 +181,8 @@ const App: React.FC = () => {
 
   const isToday = (m: number, d: number) => {
     const now = new Date();
-    // For 2026 simulation, check if system year is 2026 or just use current day/month
-    return now.getFullYear() === 2026 && now.getMonth() === m && now.getDate() === d;
+    // Use simulated 2026 check or just current day if testing
+    return now.getMonth() === m && now.getDate() === d;
   };
 
   return (
@@ -203,29 +216,30 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Widened Asset Telemetry Sidebar */}
         <section className="lg:col-span-4 space-y-8">
           <div className="bg-neutral-900/40 rounded-[2.5rem] p-10 border border-neutral-800/50 sticky top-48">
             <h2 className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.4em] mb-10">Asset Telemetry</h2>
             <div className="space-y-6">
-               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-amber-500">
+               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-amber-500 shadow-xl">
                   <p className="text-[10px] font-black text-amber-500 uppercase mb-2 tracking-widest">Alpha (Husband)</p>
                   <div className="flex justify-between items-baseline">
-                     <span className="text-4xl font-black text-white">{latestWeights.latestH}<span className="text-sm opacity-50 ml-1">kg</span></span>
+                     <span className="text-5xl font-black text-white">{latestWeights.latestH}<span className="text-sm opacity-50 ml-1">kg</span></span>
                      <span className="text-[11px] font-bold text-neutral-500">Goal: 85.0</span>
                   </div>
                </div>
-               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-rose-500">
+               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-rose-500 shadow-xl">
                   <p className="text-[10px] font-black text-rose-500 uppercase mb-2 tracking-widest">Beta (Wife)</p>
                   <div className="flex justify-between items-baseline">
-                     <span className="text-4xl font-black text-white">{latestWeights.latestW}<span className="text-sm opacity-50 ml-1">kg</span></span>
+                     <span className="text-5xl font-black text-white">{latestWeights.latestW}<span className="text-sm opacity-50 ml-1">kg</span></span>
                      <span className="text-[11px] font-bold text-neutral-500">Goal: 48.0</span>
                   </div>
                </div>
             </div>
             
             <div className="mt-12 pt-8 border-t border-neutral-800">
-               <h2 className="text-[10px] font-black text-neutral-600 uppercase tracking-widest mb-6">Inventory Status</h2>
-               <div className="space-y-3 max-h-[20vh] overflow-y-auto custom-scrollbar pr-2">
+               <h2 className="text-[10px] font-black text-neutral-600 uppercase tracking-widest mb-6">Inventory Registry</h2>
+               <div className="space-y-4 max-h-[20vh] overflow-y-auto custom-scrollbar pr-2">
                   {INVENTORY.slice(0, 10).map((item, i) => (
                     <div key={i} className="flex justify-between text-[11px] font-bold border-b border-neutral-800 pb-2">
                        <span className="text-neutral-400">{item.name}</span>
@@ -245,7 +259,6 @@ const App: React.FC = () => {
               ))}
             </div>
             <div className="grid grid-cols-7">
-              {/* Correct padding for Feb 2026 (starts Sunday, no padding) or Jan (Thu, 4 padding) */}
               {[...Array(activeMonth === 0 ? 4 : 0)].map((_, i) => (
                 <div key={`pad-${i}`} className="h-20 md:h-44 bg-black/10 border-r border-b border-neutral-800/30"></div>
               ))}
@@ -254,12 +267,12 @@ const App: React.FC = () => {
                   key={day.date}
                   onClick={() => setSelectedDay(day)}
                   className={`relative h-20 md:h-44 border-r border-b border-neutral-800/30 p-3 md:p-6 text-left transition-all hover:bg-neutral-800/40 group
-                    ${isToday(activeMonth, day.date) ? 'bg-emerald-500/10' : ''}
+                    ${isToday(activeMonth, day.date) ? 'border-2 border-emerald-500/50 bg-emerald-500/5 z-10' : ''}
                   `}
                 >
-                  <span className={`text-xs md:text-base font-black flex items-center gap-2 ${isToday(activeMonth, day.date) ? 'text-emerald-400' : 'text-neutral-600 group-hover:text-white'}`}>
+                  <span className={`text-xs md:text-base font-black flex items-center gap-2 ${isToday(activeMonth, day.date) ? 'text-emerald-400 underline underline-offset-4' : 'text-neutral-600 group-hover:text-white'}`}>
                     {day.date}
-                    {isToday(activeMonth, day.date) && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>}
+                    {isToday(activeMonth, day.date) && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>}
                   </span>
                   
                   <div className="mt-4 hidden md:block">
@@ -267,7 +280,7 @@ const App: React.FC = () => {
                       {day.dinner.name}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                       <div className={`w-2 h-2 rounded-full ${day.isCookingDay ? 'bg-emerald-500' : 'bg-neutral-800'}`}></div>
+                       <div className={`w-2 h-2 rounded-full ${day.isCookingDay ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-neutral-800'}`}></div>
                        <span className="text-[7px] text-neutral-500 font-bold uppercase">{day.husbandWorkout.type}</span>
                     </div>
                   </div>
@@ -297,49 +310,61 @@ const App: React.FC = () => {
             </div>
 
             <div className="overflow-y-auto p-12 space-y-16 custom-scrollbar">
+              {/* Manual Weight Entry Section with Button */}
               <section className="bg-black/40 rounded-[2.5rem] p-10 border border-neutral-800/50">
-                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-12">
+                 <div className="grid grid-cols-1 md:grid-cols-4 items-end gap-12">
                     <div className="flex items-center gap-6">
                        <div className="w-14 h-14 rounded-2xl bg-neutral-950 flex items-center justify-center text-2xl border border-neutral-800">⚖️</div>
                        <div>
-                          <h4 className="font-black text-xl text-white">Weight Logs</h4>
-                          <p className="text-[9px] font-black uppercase text-neutral-500 tracking-widest">Persistent Local Vault</p>
+                          <h4 className="font-black text-xl text-white">Weight Protocol</h4>
+                          <p className="text-[9px] font-black uppercase text-neutral-500 tracking-widest">Manual Commitment Required</p>
                        </div>
                     </div>
                     <div className="space-y-3">
-                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Alpha (H)</label>
+                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Alpha Intake (H)</label>
                        <input 
                          type="number" step="0.1"
-                         value={weightData[`${selectedDay.month}_${selectedDay.date}`]?.husband || ''}
-                         onChange={(e) => handleWeightChange(selectedDay.month, selectedDay.date, 'husband', e.target.value)}
+                         value={draftWeights.husband}
+                         onChange={(e) => setDraftWeights(prev => ({ ...prev, husband: e.target.value }))}
                          className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-2xl font-black text-amber-500 focus:outline-none focus:border-amber-500/50"
                          placeholder="91.0"
                        />
                     </div>
                     <div className="space-y-3">
-                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Beta (W)</label>
+                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Beta Intake (W)</label>
                        <input 
                          type="number" step="0.1"
-                         value={weightData[`${selectedDay.month}_${selectedDay.date}`]?.wife || ''}
-                         onChange={(e) => handleWeightChange(selectedDay.month, selectedDay.date, 'wife', e.target.value)}
+                         value={draftWeights.wife}
+                         onChange={(e) => setDraftWeights(prev => ({ ...prev, wife: e.target.value }))}
                          className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-2xl font-black text-rose-400 focus:outline-none focus:border-rose-400/50"
                          placeholder="54.0"
                        />
+                    </div>
+                    <div>
+                       <button 
+                         onClick={handleCommitWeights}
+                         disabled={saveStatus !== 'idle'}
+                         className={`w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${saveStatus === 'saved' ? 'bg-emerald-500 text-black' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white border border-neutral-700'}`}
+                       >
+                         {saveStatus === 'idle' && 'Commit to Vault'}
+                         {saveStatus === 'saving' && 'Updating Vault...'}
+                         {saveStatus === 'saved' && 'VAULT UPDATED ✓'}
+                       </button>
                     </div>
                  </div>
               </section>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                  <div className="space-y-10">
-                    <h4 className="text-xl font-black text-neutral-400 uppercase tracking-widest border-b border-neutral-800 pb-4">Culinary Specs</h4>
+                    <h4 className="text-xl font-black text-neutral-400 uppercase tracking-widest border-b border-neutral-800 pb-4">Culinary Specifications</h4>
                     <div className="grid grid-cols-2 gap-6 text-center">
                        <div className="bg-neutral-950 p-6 rounded-3xl border border-neutral-800">
-                          <p className="text-[9px] font-black text-neutral-600 uppercase mb-2">Alpha Energy</p>
+                          <p className="text-[9px] font-black text-neutral-600 uppercase mb-2">Alpha Scaling</p>
                           <p className="text-3xl font-black text-white">{Math.round((currentRecipe?.calories || 0) * 1.2)}<span className="text-xs ml-1 opacity-50">kcal</span></p>
                           <p className="text-[9px] font-bold text-emerald-500 mt-2">{Math.round((currentRecipe?.protein || 0) * 1.2)}g Protein</p>
                        </div>
                        <div className="bg-neutral-950 p-6 rounded-3xl border border-neutral-800">
-                          <p className="text-[9px] font-black text-neutral-600 uppercase mb-2">Beta Energy</p>
+                          <p className="text-[9px] font-black text-neutral-600 uppercase mb-2">Beta Scaling</p>
                           <p className="text-3xl font-black text-white">{Math.round((currentRecipe?.calories || 0) * 0.8)}<span className="text-xs ml-1 opacity-50">kcal</span></p>
                           <p className="text-[9px] font-bold text-rose-400 mt-2">{Math.round((currentRecipe?.protein || 0) * 0.8)}g Protein</p>
                        </div>
@@ -347,13 +372,13 @@ const App: React.FC = () => {
                     
                     <div className="bg-neutral-950 p-8 rounded-[2rem] border border-neutral-800 space-y-6">
                        <div>
-                          <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3">Lunch Window (12:00)</p>
+                          <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3">Lunch Protocol (12:00)</p>
                           <p className="text-sm font-bold text-neutral-100">{selectedDay.lunch.name}</p>
                           <p className="text-xs text-neutral-500 italic mt-1">{selectedDay.lunch.description}</p>
                        </div>
                        <div className="h-px bg-neutral-800"></div>
                        <div>
-                          <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3">Metabolic Snack (16:00)</p>
+                          <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3">Metabolic Reset (16:00)</p>
                           <p className="text-sm font-bold text-neutral-100">{selectedDay.snack.name}</p>
                           <p className="text-xs text-neutral-500 italic mt-1">{selectedDay.snack.description}</p>
                        </div>
@@ -361,14 +386,17 @@ const App: React.FC = () => {
                  </div>
 
                  <div className="space-y-10">
-                    <h4 className="text-xl font-black text-neutral-400 uppercase tracking-widest border-b border-neutral-800 pb-4">Junior Protocol</h4>
+                    <h4 className="text-xl font-black text-neutral-400 uppercase tracking-widest border-b border-neutral-800 pb-4">Junior Deployment</h4>
                     <div className="bg-neutral-950 p-10 rounded-[3rem] border border-emerald-500/10 shadow-inner">
-                       <p className="text-2xl font-black text-emerald-500 mb-2 italic">{selectedDay.babyMeal?.name}</p>
+                       <div className="flex justify-between items-start mb-4">
+                          <p className="text-2xl font-black text-emerald-500 italic">{selectedDay.babyMeal?.name}</p>
+                          <span className="bg-emerald-950/50 text-emerald-400 text-[8px] px-2 py-1 rounded font-black uppercase">No Spices</span>
+                       </div>
                        <p className="text-xs text-neutral-500 leading-relaxed mb-8">{selectedDay.babyMeal?.description}</p>
                        <div className="space-y-4">
                           {RECIPES[selectedDay.babyMeal?.recipeId || '']?.instructions.map((step, i) => (
                             <div key={i} className="flex gap-4 text-[11px] font-bold text-neutral-400">
-                               <span className="text-emerald-500">{i+1}.</span> {step}
+                               <span className="text-emerald-500 font-black">{i+1}.</span> {step}
                             </div>
                           ))}
                        </div>
@@ -382,10 +410,10 @@ const App: React.FC = () => {
               </section>
             </div>
             
-            <div className="p-10 bg-black/40 flex justify-center border-t border-neutral-800">
+            <div className="p-10 flex justify-center border-t border-neutral-800">
               <button 
                 onClick={() => setSelectedDay(null)}
-                className={`w-full md:w-auto px-20 py-6 ${activeMonth === 0 ? 'bg-amber-500' : 'bg-rose-500'} text-black rounded-[2rem] font-black uppercase tracking-[0.4em] hover:scale-105 transition-all shadow-2xl`}
+                className={`w-full md:w-auto px-24 py-7 ${activeMonth === 0 ? 'bg-amber-500' : 'bg-rose-500'} text-black rounded-[2rem] font-black uppercase tracking-[0.4em] hover:scale-105 transition-all shadow-2xl active:scale-95`}
               >
                 CLOSE PROTOCOL
               </button>
