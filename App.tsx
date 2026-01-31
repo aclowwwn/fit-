@@ -118,7 +118,6 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : {};
   });
 
-  // Draft state for modal weight entry
   const [draftWeights, setDraftWeights] = useState<WeightEntry>({ husband: '', wife: '' });
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
@@ -126,7 +125,6 @@ const App: React.FC = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(weightData));
   }, [weightData]);
 
-  // Update draft when a day is selected
   useEffect(() => {
     if (selectedDay) {
       const key = `${selectedDay.month}_${selectedDay.date}`;
@@ -174,14 +172,26 @@ const App: React.FC = () => {
       const [mB, dB] = b.split('_').map(Number);
       return (mB * 100 + dB) - (mA * 100 + dA);
     });
-    const latestH = weightData[keys.find(k => weightData[k].husband) || '']?.husband || '91.0';
-    const latestW = weightData[keys.find(k => weightData[k].wife) || '']?.wife || '54.0';
-    return { latestH, latestW };
+
+    const keyH = keys.find(k => weightData[k].husband !== '');
+    const keyW = keys.find(k => weightData[k].wife !== '');
+
+    const formatKeyToDate = (key?: string) => {
+      if (!key) return null;
+      const [m, d] = key.split('_');
+      return `${m === '0' ? 'Jan' : 'Feb'} ${d}`;
+    };
+
+    return { 
+      h: weightData[keyH || '']?.husband || '91.0', 
+      dateH: formatKeyToDate(keyH),
+      w: weightData[keyW || '']?.wife || '54.0',
+      dateW: formatKeyToDate(keyW)
+    };
   }, [weightData]);
 
   const isToday = (m: number, d: number) => {
     const now = new Date();
-    // Use simulated 2026 check or just current day if testing
     return now.getMonth() === m && now.getDate() === d;
   };
 
@@ -216,22 +226,27 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Widened Asset Telemetry Sidebar */}
         <section className="lg:col-span-4 space-y-8">
           <div className="bg-neutral-900/40 rounded-[2.5rem] p-10 border border-neutral-800/50 sticky top-48">
             <h2 className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.4em] mb-10">Asset Telemetry</h2>
             <div className="space-y-6">
-               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-amber-500 shadow-xl">
-                  <p className="text-[10px] font-black text-amber-500 uppercase mb-2 tracking-widest">Alpha (Husband)</p>
+               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-amber-500 shadow-xl transition-all duration-500">
+                  <p className="text-[10px] font-black text-amber-500 uppercase mb-2 tracking-widest flex justify-between">
+                    Alpha (Husband)
+                    {latestWeights.dateH && <span className="text-[8px] text-neutral-600">LAST: {latestWeights.dateH}</span>}
+                  </p>
                   <div className="flex justify-between items-baseline">
-                     <span className="text-5xl font-black text-white">{latestWeights.latestH}<span className="text-sm opacity-50 ml-1">kg</span></span>
+                     <span className="text-5xl font-black text-white">{latestWeights.h}<span className="text-sm opacity-50 ml-1">kg</span></span>
                      <span className="text-[11px] font-bold text-neutral-500">Goal: 85.0</span>
                   </div>
                </div>
-               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-rose-500 shadow-xl">
-                  <p className="text-[10px] font-black text-rose-500 uppercase mb-2 tracking-widest">Beta (Wife)</p>
+               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-rose-500 shadow-xl transition-all duration-500">
+                  <p className="text-[10px] font-black text-rose-500 uppercase mb-2 tracking-widest flex justify-between">
+                    Beta (Wife)
+                    {latestWeights.dateW && <span className="text-[8px] text-neutral-600">LAST: {latestWeights.dateW}</span>}
+                  </p>
                   <div className="flex justify-between items-baseline">
-                     <span className="text-5xl font-black text-white">{latestWeights.latestW}<span className="text-sm opacity-50 ml-1">kg</span></span>
+                     <span className="text-5xl font-black text-white">{latestWeights.w}<span className="text-sm opacity-50 ml-1">kg</span></span>
                      <span className="text-[11px] font-bold text-neutral-500">Goal: 48.0</span>
                   </div>
                </div>
@@ -310,18 +325,17 @@ const App: React.FC = () => {
             </div>
 
             <div className="overflow-y-auto p-12 space-y-16 custom-scrollbar">
-              {/* Manual Weight Entry Section with Button */}
               <section className="bg-black/40 rounded-[2.5rem] p-10 border border-neutral-800/50">
                  <div className="grid grid-cols-1 md:grid-cols-4 items-end gap-12">
                     <div className="flex items-center gap-6">
                        <div className="w-14 h-14 rounded-2xl bg-neutral-950 flex items-center justify-center text-2xl border border-neutral-800">⚖️</div>
                        <div>
                           <h4 className="font-black text-xl text-white">Weight Protocol</h4>
-                          <p className="text-[9px] font-black uppercase text-neutral-500 tracking-widest">Manual Commitment Required</p>
+                          <p className="text-[9px] font-black uppercase text-neutral-500 tracking-widest">Vault Entry Mode</p>
                        </div>
                     </div>
-                    <div className="space-y-3">
-                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Alpha Intake (H)</label>
+                    <div className="space-y-3 relative">
+                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Alpha (H)</label>
                        <input 
                          type="number" step="0.1"
                          value={draftWeights.husband}
@@ -329,9 +343,12 @@ const App: React.FC = () => {
                          className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-2xl font-black text-amber-500 focus:outline-none focus:border-amber-500/50"
                          placeholder="91.0"
                        />
+                       {draftWeights.husband !== (weightData[`${selectedDay.month}_${selectedDay.date}`]?.husband || '') && (
+                         <span className="absolute -top-1 -right-1 bg-amber-500 text-black text-[7px] font-black px-1.5 py-0.5 rounded-full animate-bounce">DRAFT</span>
+                       )}
                     </div>
-                    <div className="space-y-3">
-                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Beta Intake (W)</label>
+                    <div className="space-y-3 relative">
+                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Beta (W)</label>
                        <input 
                          type="number" step="0.1"
                          value={draftWeights.wife}
@@ -339,16 +356,19 @@ const App: React.FC = () => {
                          className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-2xl font-black text-rose-400 focus:outline-none focus:border-rose-400/50"
                          placeholder="54.0"
                        />
+                       {draftWeights.wife !== (weightData[`${selectedDay.month}_${selectedDay.date}`]?.wife || '') && (
+                         <span className="absolute -top-1 -right-1 bg-rose-400 text-black text-[7px] font-black px-1.5 py-0.5 rounded-full animate-bounce">DRAFT</span>
+                       )}
                     </div>
                     <div>
                        <button 
                          onClick={handleCommitWeights}
                          disabled={saveStatus !== 'idle'}
-                         className={`w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${saveStatus === 'saved' ? 'bg-emerald-500 text-black' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white border border-neutral-700'}`}
+                         className={`w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all duration-300 transform active:scale-95 ${saveStatus === 'saved' ? 'bg-emerald-500 text-black shadow-[0_0_20px_#10b98144]' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white border border-neutral-700'}`}
                        >
                          {saveStatus === 'idle' && 'Commit to Vault'}
-                         {saveStatus === 'saving' && 'Updating Vault...'}
-                         {saveStatus === 'saved' && 'VAULT UPDATED ✓'}
+                         {saveStatus === 'saving' && 'Syncing...'}
+                         {saveStatus === 'saved' && 'VAULT COMMITTED ✓'}
                        </button>
                     </div>
                  </div>
@@ -410,7 +430,7 @@ const App: React.FC = () => {
               </section>
             </div>
             
-            <div className="p-10 flex justify-center border-t border-neutral-800">
+            <div className="p-10 flex justify-center border-t border-neutral-800 bg-neutral-900/50">
               <button 
                 onClick={() => setSelectedDay(null)}
                 className={`w-full md:w-auto px-24 py-7 ${activeMonth === 0 ? 'bg-amber-500' : 'bg-rose-500'} text-black rounded-[2rem] font-black uppercase tracking-[0.4em] hover:scale-105 transition-all shadow-2xl active:scale-95`}
