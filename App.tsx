@@ -6,41 +6,51 @@ import { INVENTORY, RECIPES, WORKOUTS } from './constants';
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const STORAGE_KEY = 'zenith_weight_tracker_2026';
 
-const generateJan2026Plan = (): MealPlanDay[] => {
+const generatePlan = (month: number): MealPlanDay[] => {
   const plan: MealPlanDay[] = [];
-  const daysInJan = 31;
-  const startDay = 4; // Jan 1, 2026 is a Thursday
+  const isJan = month === 0;
+  const daysInMonth = isJan ? 31 : 28;
+  const startDay = isJan ? 4 : 0; // Jan 1 2026: Thu (4), Feb 1 2026: Sun (0)
 
-  const getMealForDay = (day: number): { recipeId: string; name: string; isLeftover?: boolean; leftoverFrom?: number } => {
-    if (day === 1) return { recipeId: 'frozen-sarmale', name: 'Frozen Sarmale' };
-    if (day === 2) return { recipeId: 'frozen-sarmale', name: 'Frozen Sarmale (Leftover)', isLeftover: true, leftoverFrom: 1 };
-    if (day >= 3 && day < 6) return { recipeId: 'bone-broth-stew', name: 'Beef Bone Broth Stew', isLeftover: day > 3, leftoverFrom: 3 };
-    if (day >= 6 && day < 10) return { recipeId: 'pork-roast', name: 'Slow Cooker Pork', isLeftover: day > 6, leftoverFrom: 6 };
-    if (day >= 10 && day < 13) return { recipeId: 'salmon-cutlets', name: 'Salmon Cutlets', isLeftover: day > 10, leftoverFrom: 10 };
-    if (day >= 13 && day < 17) return { recipeId: 'sausage-potato-hash', name: 'Sausage & Potato Hash', isLeftover: day > 13, leftoverFrom: 13 };
-    if (day >= 17 && day < 20) return { recipeId: 'beef-pasta-sauce', name: 'Slow Cooked Beef Pasta', isLeftover: day > 17, leftoverFrom: 17 };
-    if (day >= 20 && day < 24) return { recipeId: 'beef-tomato-soup', name: 'Beef & Tomato Soup', isLeftover: day > 20, leftoverFrom: 20 };
-    if (day >= 24 && day < 27) return { recipeId: 'frozen-stew', name: 'Chicken Stew (Frozen)', isLeftover: day > 24, leftoverFrom: 24 };
-    if (day >= 27 && day < 31) return { recipeId: 'pork-roast', name: 'Garlic Pork (Final Batch)', isLeftover: day > 27, leftoverFrom: 27 };
-    return { recipeId: 'frozen-soup', name: 'Chicken Soup (Frozen)' };
+  const getJanMeal = (day: number) => {
+    if (day === 1) return { recipeId: 'bone-broth-stew', name: 'Beef Bone Broth Stew' };
+    if (day <= 3) return { recipeId: 'bone-broth-stew', name: 'Beef Bone Broth Stew', isLeftover: true };
+    if (day <= 7) return { recipeId: 'pork-roast', name: 'Slow Cooker Pork', isLeftover: day > 4 };
+    if (day <= 10) return { recipeId: 'salmon-cutlets', name: 'Salmon Cutlets', isLeftover: day > 8 };
+    return { recipeId: 'beef-pasta-sauce', name: 'Slow Cooked Beef Pasta', isLeftover: day % 2 === 0 };
   };
 
-  const getBabyMeal = (day: number) => {
-    if (day < 6) return { name: 'Beef & Root Puree', description: 'Batch cooked on Sat/Tue', recipeId: 'baby-beef-veggie' };
-    if (day < 10) return { name: 'Pork & Potato Mash', description: 'Batch cooked with Tuesday roast', recipeId: 'baby-pork-potato' };
-    if (day < 13) return { name: 'Salmon & Potato Mash', description: 'Using fresh cooked salmon', recipeId: 'baby-salmon-mash' };
-    if (day < 17) return { name: 'Veggie Broth Puree', description: 'Mild and nutrient rich', recipeId: 'baby-veggie-broth-puree' };
-    if (day < 24) return { name: 'Beef & Veggie Blend', description: 'Using slow cooked beef', recipeId: 'baby-beef-veggie' };
-    return { name: 'Potato & Carrot Mix', description: 'Gentle for tiny tummies', recipeId: 'baby-veggie-broth-puree' };
+  const getFebMeal = (day: number) => {
+    if (day <= 4) return { recipeId: 'herb-chicken-roast', name: 'Rosemary Roasted Chicken', isLeftover: day > 1 };
+    if (day <= 8) return { recipeId: 'garlic-pork-tenderloin', name: 'Garlic Butter Pork', isLeftover: day > 5 };
+    if (day <= 12) return { recipeId: 'beef-vegetable-stirfry', name: 'Beef & Veg Stir-Fry', isLeftover: day > 9 };
+    if (day <= 16) return { recipeId: 'chicken-lemon-soup', name: 'Chicken Lemon Soup', isLeftover: day > 13 };
+    return { recipeId: 'slow-beef-pot-roast', name: 'Zenith Pot Roast', isLeftover: day % 2 === 1 };
+  };
+
+  const getFebLunch = (day: number) => {
+    const options = [
+      { name: 'Chicken Caesar Salad', description: 'Fresh romaine with roasted chicken strips.' },
+      { name: 'Beef & Horseradish Sandwich', description: 'Sourdough with thin beef slices and greens.' },
+      { name: 'Quinoa & Veggie Power Bowl', description: 'Mixed carrots, beans, and fresh spinach.' },
+      { name: 'Turkey & Cranberry Wrap', description: 'Whole grain wrap with light spread.' }
+    ];
+    return options[day % options.length];
+  };
+
+  // Added explicit return type to ensure consistent union type for property 'description'
+  const getFebBaby = (day: number): { recipeId: string; name: string; description?: string } => {
+    if (day <= 4) return { recipeId: 'baby-herb-chicken', name: 'Soft Chicken & Potato' };
+    if (day <= 8) return { recipeId: 'baby-pork-medallion', name: 'Pork & Bean Mash' };
+    if (day <= 12) return { recipeId: 'baby-beef-stew-mild', name: 'Gentle Beef Puree' };
+    return { recipeId: 'baby-chicken-orzo', name: 'Chicken & Orzo Mash' };
   };
 
   const getSnack = (day: number) => {
     const snacks = [
-      { name: 'Nuts & Dried Fruits', description: 'Mixed nuts with dried cranberries or dates.' },
-      { name: 'Air-Popped Popcorn', description: 'Homemade popcorn—low calorie snack.' },
-      { name: 'Fresh Seasonal Fruit', description: 'An apple, pear, or a bowl of berries.' },
-      { name: 'Carrot Sticks & Spreads', description: 'Raw carrots with a small amount of hummus.' },
-      { name: 'Dates & Walnuts', description: 'Two dates stuffed with walnut halves.' }
+      { name: 'Almonds & Berries', description: '10 nuts and a handful of berries.' },
+      { name: 'Greek Yogurt', description: 'Plain yogurt with a dash of honey.' },
+      { name: 'Hard Boiled Egg', description: 'Simple protein hit.' }
     ];
     return snacks[day % snacks.length];
   };
@@ -54,25 +64,26 @@ const generateJan2026Plan = (): MealPlanDay[] => {
     };
   };
 
-  for (let d = 1; d <= daysInJan; d++) {
+  for (let d = 1; d <= daysInMonth; d++) {
     const dayIndex = (startDay + d - 1) % 7;
-    const isCookingDay = dayIndex === 2 || dayIndex === 6;
-    const dinner = getMealForDay(d);
-    const babyMeal = getBabyMeal(d);
-    const snack = getSnack(d);
+    const dinner = isJan ? getJanMeal(d) : getFebMeal(d);
+    const lunch = isJan ? { name: 'Sourdough & Spreads', description: 'Homemade sourdough with assorted spreads.' } : getFebLunch(d);
+    // Explicitly typed 'baby' to avoid property access error on 'description' inside the union
+    const baby: { name: string; recipeId: string; description?: string } = isJan 
+      ? { name: 'Beef & Root Puree', recipeId: 'baby-beef-veggie', description: 'Mild blend.' } 
+      : getFebBaby(d);
     const w = getWorkouts(d);
 
     plan.push({
       date: d,
+      month: month,
       dayOfWeek: DAYS_OF_WEEK[dayIndex],
-      isCookingDay,
-      lunch: {
-        name: 'Sourdough & Spreads',
-        description: 'Homemade sourdough bread or lettuce wraps.'
-      },
-      dinner: dinner,
-      babyMeal: babyMeal,
-      snack: snack,
+      isCookingDay: dayIndex === 2 || dayIndex === 6,
+      lunch,
+      dinner: { ...dinner, recipeId: dinner.recipeId },
+      // Fixed: Property access error on baby.description resolved by the explicit typing above
+      babyMeal: { ...baby, recipeId: baby.recipeId, description: baby.description || 'Gentle for tiny tummies' },
+      snack: getSnack(d),
       husbandWorkout: w.husband,
       wifeWorkout: w.wife
     });
@@ -81,41 +92,29 @@ const generateJan2026Plan = (): MealPlanDay[] => {
 };
 
 const WorkoutDisplay: React.FC<{ person: string; workout: Workout; accent: string }> = ({ person, workout, accent }) => (
-  <div className={`p-6 rounded-3xl bg-neutral-900 border-2 border-emerald-900/50 shadow-2xl h-full transition-transform hover:scale-[1.01]`}>
+  <div className={`p-6 rounded-3xl bg-neutral-900 border-2 border-neutral-800 shadow-2xl h-full transition-transform hover:scale-[1.01]`}>
     <div className="flex items-center justify-between mb-4">
-      <h4 className="text-[10px] uppercase font-black text-amber-500 tracking-[0.2em]">{person} Protocol</h4>
+      <h4 className="text-[10px] uppercase font-black text-neutral-500 tracking-[0.2em]">{person} Protocol</h4>
       <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${accent} text-white`}>{workout.type}</span>
     </div>
     <h5 className="text-xl font-black text-neutral-100 mb-4">{workout.title}</h5>
-    
-    <div className="space-y-4">
-      <div className="bg-neutral-800 p-3 rounded-xl border border-neutral-700">
-        <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Warm-Up</span>
-        <ul className="text-xs text-neutral-400 mt-2 space-y-1 font-medium">
-          {workout.warmup.map((w, i) => <li key={i} className="flex gap-2"><span>•</span> {w}</li>)}
-        </ul>
-      </div>
-      <div className="bg-emerald-900/40 p-4 rounded-xl text-neutral-100 shadow-lg border border-emerald-500/30">
-        <span className="text-[9px] font-black text-emerald-300 uppercase tracking-widest">Performance Set</span>
-        <ul className="text-xs mt-2 space-y-1.5 font-bold">
-          {workout.exercises.map((e, i) => <li key={i} className="flex gap-2"><span>▶</span> {e}</li>)}
-        </ul>
-      </div>
-      <div className="bg-neutral-800 p-3 rounded-xl border border-neutral-700">
-        <span className="text-[9px] font-black text-neutral-500 uppercase tracking-widest">Recovery</span>
-        <ul className="text-xs text-neutral-400 mt-2 space-y-1 font-medium">
-          {workout.cooldown.map((c, i) => <li key={i} className="flex gap-2"><span>❄</span> {c}</li>)}
-        </ul>
-      </div>
+    <div className="space-y-4 text-xs">
+       <div className="bg-neutral-800 p-3 rounded-xl">
+         <span className="text-[8px] font-bold text-neutral-500 uppercase tracking-widest">Main Set</span>
+         <ul className="mt-2 space-y-1 text-neutral-400 font-medium">
+           {workout.exercises.map((e, i) => <li key={i}>▶ {e}</li>)}
+         </ul>
+       </div>
     </div>
   </div>
 );
 
 type WeightEntry = { husband: string; wife: string };
-type WeightData = Record<number, WeightEntry>;
+type WeightData = Record<string, WeightEntry>;
 
 const App: React.FC = () => {
-  const mealPlan = useMemo(() => generateJan2026Plan(), []);
+  const [activeMonth, setActiveMonth] = useState(0); // 0 = Jan, 1 = Feb
+  const mealPlan = useMemo(() => generatePlan(activeMonth), [activeMonth]);
   const [selectedDay, setSelectedDay] = useState<MealPlanDay | null>(null);
   const [weightData, setWeightData] = useState<WeightData>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -126,11 +125,26 @@ const App: React.FC = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(weightData));
   }, [weightData]);
 
-  const handleWeightChange = (date: number, person: keyof WeightEntry, value: string) => {
+  const monthVibe = activeMonth === 0 ? {
+    accent: 'text-amber-500',
+    border: 'border-amber-500/20',
+    bg: 'bg-amber-500/10',
+    glow: 'shadow-[0_0_50px_rgba(212,175,55,0.1)]',
+    name: 'Obsidian Gold'
+  } : {
+    accent: 'text-rose-400',
+    border: 'border-rose-400/20',
+    bg: 'bg-rose-400/10',
+    glow: 'shadow-[0_0_50px_rgba(244,63,94,0.1)]',
+    name: 'Rose Obsidian'
+  };
+
+  const handleWeightChange = (month: number, date: number, person: keyof WeightEntry, value: string) => {
+    const key = `${month}_${date}`;
     setWeightData(prev => ({
       ...prev,
-      [date]: {
-        ...(prev[date] || { husband: '', wife: '' }),
+      [key]: {
+        ...(prev[key] || { husband: '', wife: '' }),
         [person]: value
       }
     }));
@@ -141,115 +155,120 @@ const App: React.FC = () => {
     return RECIPES[selectedDay.dinner.recipeId] || null;
   }, [selectedDay]);
 
-  const multipliers = { husband: 1.2, wife: 0.8 };
-
-  const latestHusbandWeight = useMemo(() => {
-    const entries = (Object.entries(weightData) as [string, WeightEntry][]).sort((a, b) => Number(b[0]) - Number(a[0]));
-    const found = entries.find(e => e[1].husband);
-    return found ? found[1].husband : '91.0';
+  const latestWeights = useMemo(() => {
+    const keys = Object.keys(weightData).sort((a, b) => {
+      const [mA, dA] = a.split('_').map(Number);
+      const [mB, dB] = b.split('_').map(Number);
+      return (mB * 100 + dB) - (mA * 100 + dA);
+    });
+    const latestH = weightData[keys.find(k => weightData[k].husband) || '']?.husband || '91.0';
+    const latestW = weightData[keys.find(k => weightData[k].wife) || '']?.wife || '54.0';
+    return { latestH, latestW };
   }, [weightData]);
 
-  const latestWifeWeight = useMemo(() => {
-    const entries = (Object.entries(weightData) as [string, WeightEntry][]).sort((a, b) => Number(b[0]) - Number(a[0]));
-    const found = entries.find(e => e[1].wife);
-    return found ? found[1].wife : '54.0';
-  }, [weightData]);
+  const isToday = (m: number, d: number) => {
+    const now = new Date();
+    // For 2026 simulation, check if system year is 2026 or just use current day/month
+    return now.getFullYear() === 2026 && now.getMonth() === m && now.getDate() === d;
+  };
 
   return (
-    <div className="min-h-screen pb-12 bg-[#0a0a0a] text-neutral-200">
-      <header className="bg-neutral-950 p-10 shadow-[0_0_50px_rgba(16,185,129,0.1)] border-b border-amber-500/20 sticky top-0 z-40">
+    <div className="min-h-screen pb-12 bg-[#050505] text-neutral-200">
+      <header className={`bg-black/80 backdrop-blur-md p-10 border-b ${monthVibe.border} sticky top-0 z-40 transition-colors duration-500`}>
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-8">
-          <div className="text-center lg:text-left">
-            <div className="flex items-center justify-center lg:justify-start gap-4 mb-3">
-               <h1 className="text-5xl font-black tracking-tighter italic text-amber-500">ZENITH 2026</h1>
-               <div className="h-10 w-px bg-emerald-500/30 hidden md:block"></div>
-               <span className="bg-emerald-950/50 text-emerald-400 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border border-emerald-500/30">Obsidian Protocol</span>
+          <div>
+            <div className="flex items-center gap-4 mb-2">
+               <h1 className={`text-5xl font-black tracking-tighter italic ${monthVibe.accent}`}>ZENITH 2026</h1>
+               <div className="h-10 w-px bg-neutral-800 hidden md:block"></div>
+               <span className={`bg-neutral-900 ${monthVibe.accent} px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border ${monthVibe.border}`}>{monthVibe.name}</span>
             </div>
-            <p className="text-neutral-500 text-sm font-semibold tracking-[0.1em]">Summit Threshold: 85.0kg & 48.0kg</p>
+            <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest">{activeMonth === 0 ? 'January' : 'February'} Deployment</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-6">
-            <div className="bg-neutral-900 px-7 py-4 rounded-2xl border border-amber-500/10 flex flex-col items-center gold-glow">
-              <span className="text-[10px] uppercase font-black text-amber-500 tracking-[0.2em] mb-1">Metabolic Window</span>
-              <span className="text-3xl font-black tabular-nums text-neutral-100">12:00 — 20:00</span>
-            </div>
-            <div className="bg-emerald-900/20 p-5 rounded-2xl flex items-center gap-4 text-sm font-black border border-emerald-500/20 emerald-glow">
-              <div className="w-4 h-4 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_20px_#10b981]"></div>
-              <span className="uppercase tracking-[0.2em] text-emerald-400">Zenith Active</span>
-            </div>
+          
+          <div className="flex items-center gap-3 bg-neutral-900/50 p-2 rounded-2xl border border-neutral-800">
+            <button 
+              onClick={() => setActiveMonth(0)}
+              className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeMonth === 0 ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'text-neutral-500 hover:text-white'}`}
+            >
+              January
+            </button>
+            <button 
+              onClick={() => setActiveMonth(1)}
+              className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeMonth === 1 ? 'bg-rose-500 text-black shadow-lg shadow-rose-500/20' : 'text-neutral-500 hover:text-white'}`}
+            >
+              February
+            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Sidebar - Widened to col-span-5 */}
-        <section className="lg:col-span-5 space-y-8">
-          <div className="bg-neutral-900/80 rounded-[2.5rem] shadow-2xl p-10 border border-neutral-800 sticky top-48">
-            <div className="mb-10">
-               <h2 className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.4em] mb-8">Asset Targets</h2>
-               <div className="space-y-5">
-                 <div className="bg-neutral-800 p-10 rounded-2xl border-l-8 border-amber-500 shadow-xl">
-                    <p className="text-[10px] font-black text-amber-500 uppercase mb-2 tracking-[0.2em]">Asset Alpha</p>
-                    <div className="flex justify-between items-end">
-                       <span className="text-5xl font-black text-neutral-100 tracking-tighter">{latestHusbandWeight}<span className="text-sm opacity-50 ml-1">kg</span></span>
-                       <span className="text-[12px] font-black text-emerald-500">Target: 85.0</span>
-                    </div>
-                 </div>
-                 <div className="bg-neutral-800 p-10 rounded-2xl border-l-8 border-emerald-600 shadow-xl">
-                    <p className="text-[10px] font-black text-emerald-500 uppercase mb-2 tracking-[0.2em]">Asset Beta</p>
-                    <div className="flex justify-between items-end">
-                       <span className="text-5xl font-black text-neutral-100 tracking-tighter">{latestWifeWeight}<span className="text-sm opacity-50 ml-1">kg</span></span>
-                       <span className="text-[12px] font-black text-emerald-500">Target: 48.0</span>
-                    </div>
-                 </div>
+        <section className="lg:col-span-4 space-y-8">
+          <div className="bg-neutral-900/40 rounded-[2.5rem] p-10 border border-neutral-800/50 sticky top-48">
+            <h2 className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.4em] mb-10">Asset Telemetry</h2>
+            <div className="space-y-6">
+               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-amber-500">
+                  <p className="text-[10px] font-black text-amber-500 uppercase mb-2 tracking-widest">Alpha (Husband)</p>
+                  <div className="flex justify-between items-baseline">
+                     <span className="text-4xl font-black text-white">{latestWeights.latestH}<span className="text-sm opacity-50 ml-1">kg</span></span>
+                     <span className="text-[11px] font-bold text-neutral-500">Goal: 85.0</span>
+                  </div>
+               </div>
+               <div className="bg-black/40 p-8 rounded-3xl border-l-8 border-rose-500">
+                  <p className="text-[10px] font-black text-rose-500 uppercase mb-2 tracking-widest">Beta (Wife)</p>
+                  <div className="flex justify-between items-baseline">
+                     <span className="text-4xl font-black text-white">{latestWeights.latestW}<span className="text-sm opacity-50 ml-1">kg</span></span>
+                     <span className="text-[11px] font-bold text-neutral-500">Goal: 48.0</span>
+                  </div>
                </div>
             </div>
-
-            <div className="pt-6 border-t border-neutral-800">
-              <h2 className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.4em] mb-6">Inventory Registry</h2>
-              <ul className="space-y-4 max-h-[30vh] overflow-y-auto pr-4 custom-scrollbar text-neutral-400">
-                {INVENTORY.map((item, idx) => (
-                  <li key={idx} className="flex justify-between items-center text-xs font-bold border-b border-neutral-800 pb-2">
-                    <span>{item.name}</span>
-                    <span className="text-amber-500/60 font-black">{item.quantity}</span>
-                  </li>
-                ))}
-              </ul>
+            
+            <div className="mt-12 pt-8 border-t border-neutral-800">
+               <h2 className="text-[10px] font-black text-neutral-600 uppercase tracking-widest mb-6">Inventory Status</h2>
+               <div className="space-y-3 max-h-[20vh] overflow-y-auto custom-scrollbar pr-2">
+                  {INVENTORY.slice(0, 10).map((item, i) => (
+                    <div key={i} className="flex justify-between text-[11px] font-bold border-b border-neutral-800 pb-2">
+                       <span className="text-neutral-400">{item.name}</span>
+                       <span className={monthVibe.accent}>{item.quantity}</span>
+                    </div>
+                  ))}
+               </div>
             </div>
           </div>
         </section>
 
-        {/* Calendar - Narrowed slightly to col-span-7 to accommodate wider sidebar */}
-        <section className="lg:col-span-7">
-          <div className="bg-neutral-900/50 rounded-[3rem] shadow-2xl overflow-hidden border border-neutral-800">
-            <div className="grid grid-cols-7 bg-neutral-950 border-b border-neutral-800">
+        <section className="lg:col-span-8">
+          <div className="bg-neutral-900/20 rounded-[3rem] shadow-2xl overflow-hidden border border-neutral-800/50">
+            <div className="grid grid-cols-7 bg-black/40 border-b border-neutral-800/50">
               {DAYS_OF_WEEK.map(day => (
-                <div key={day} className="py-8 text-center text-[10px] font-black text-neutral-500 uppercase tracking-[0.5em]">{day}</div>
+                <div key={day} className="py-6 text-center text-[10px] font-black text-neutral-600 uppercase tracking-[0.4em]">{day}</div>
               ))}
             </div>
             <div className="grid grid-cols-7">
-              {[...Array(4)].map((_, i) => (
-                <div key={`pad-${i}`} className="h-16 md:h-40 bg-neutral-950/40 border-r border-b border-neutral-800/50"></div>
+              {/* Correct padding for Feb 2026 (starts Sunday, no padding) or Jan (Thu, 4 padding) */}
+              {[...Array(activeMonth === 0 ? 4 : 0)].map((_, i) => (
+                <div key={`pad-${i}`} className="h-20 md:h-44 bg-black/10 border-r border-b border-neutral-800/30"></div>
               ))}
               {mealPlan.map((day) => (
                 <button
                   key={day.date}
                   onClick={() => setSelectedDay(day)}
-                  className={`relative h-16 md:h-40 border-r border-b border-neutral-800/50 p-3 md:p-5 text-left transition-all hover:bg-neutral-800/60 group
-                    ${day.isCookingDay ? 'bg-emerald-950/10' : ''}
-                    ${selectedDay?.date === day.date ? 'bg-neutral-800 shadow-[inset_0_0_20px_rgba(212,175,55,0.1)] ring-2 ring-amber-500/50 z-10' : ''}
+                  className={`relative h-20 md:h-44 border-r border-b border-neutral-800/30 p-3 md:p-6 text-left transition-all hover:bg-neutral-800/40 group
+                    ${isToday(activeMonth, day.date) ? 'bg-emerald-500/10' : ''}
                   `}
                 >
-                  <span className={`text-xs md:text-sm font-black ${day.dayOfWeek === 'Sun' || day.dayOfWeek === 'Sat' ? 'text-amber-500' : 'text-neutral-600 group-hover:text-amber-400 transition-colors'}`}>{day.date}</span>
-                  {day.isCookingDay && <div className="absolute top-2 right-2 md:top-5 md:right-5 w-1.5 h-1.5 md:w-2 md:h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]"></div>}
+                  <span className={`text-xs md:text-base font-black flex items-center gap-2 ${isToday(activeMonth, day.date) ? 'text-emerald-400' : 'text-neutral-600 group-hover:text-white'}`}>
+                    {day.date}
+                    {isToday(activeMonth, day.date) && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>}
+                  </span>
                   
-                  {/* Daily details hidden on mobile view as requested */}
                   <div className="mt-4 hidden md:block">
-                    <p className={`text-[11px] leading-tight font-black uppercase tracking-tight truncate ${day.dinner.isLeftover ? 'text-neutral-600' : 'text-neutral-200'}`}>
+                    <p className={`text-[10px] leading-tight font-black uppercase tracking-tight truncate ${day.dinner.isLeftover ? 'opacity-30' : 'text-neutral-200'}`}>
                       {day.dinner.name}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                       <span className="text-[7px] bg-neutral-950 text-neutral-500 px-2 py-0.5 rounded-full font-black border border-neutral-800 uppercase tracking-tighter">{day.husbandWorkout.type}</span>
-                       <span className="text-[7px] bg-neutral-950 text-neutral-500 px-2 py-0.5 rounded-full font-black border border-neutral-800 uppercase tracking-tighter">{day.wifeWorkout.type}</span>
+                       <div className={`w-2 h-2 rounded-full ${day.isCookingDay ? 'bg-emerald-500' : 'bg-neutral-800'}`}></div>
+                       <span className="text-[7px] text-neutral-500 font-bold uppercase">{day.husbandWorkout.type}</span>
                     </div>
                   </div>
                 </button>
@@ -260,162 +279,115 @@ const App: React.FC = () => {
       </main>
 
       {selectedDay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm">
-          <div className="bg-neutral-900 rounded-[3rem] shadow-2xl max-w-6xl w-full max-h-[94vh] overflow-hidden flex flex-col border border-amber-500/20">
-            <div className="p-10 border-b border-neutral-800 flex justify-between items-center bg-neutral-950/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
+          <div className="bg-neutral-900 rounded-[3rem] shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col border border-neutral-800">
+            <div className={`p-10 border-b border-neutral-800 flex justify-between items-center bg-black/20`}>
               <div className="flex items-center gap-8">
-                <div className="bg-gradient-to-br from-neutral-800 to-black text-amber-500 w-20 h-20 md:w-24 md:h-24 rounded-[2rem] flex items-center justify-center font-black text-3xl md:text-4xl shadow-2xl border border-amber-500/30 rotate-3">
+                <div className={`w-20 h-20 rounded-3xl bg-neutral-950 flex items-center justify-center font-black text-3xl shadow-xl border ${monthVibe.border} ${monthVibe.accent}`}>
                   {selectedDay.date}
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-emerald-500 uppercase tracking-[0.5em] mb-2">{selectedDay.dayOfWeek} JAN PROTOCOL</h3>
-                  <h2 className="text-2xl md:text-4xl font-black text-neutral-100 tracking-tighter uppercase">{selectedDay.dinner.name}</h2>
+                  <h3 className={`text-[10px] font-black uppercase tracking-[0.5em] mb-2 ${monthVibe.accent}`}>{selectedDay.dayOfWeek} DEPLOYMENT</h3>
+                  <h2 className="text-4xl font-black text-white tracking-tighter uppercase">{selectedDay.dinner.name}</h2>
                 </div>
               </div>
-              <button onClick={() => setSelectedDay(null)} className="p-4 hover:bg-neutral-800 rounded-full transition-all group active:scale-90">
-                <svg className="w-8 h-8 text-neutral-600 group-hover:text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+              <button onClick={() => setSelectedDay(null)} className="p-4 hover:bg-neutral-800 rounded-full transition-all group">
+                <svg className="w-8 h-8 text-neutral-600 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
 
-            <div className="overflow-y-auto p-12 space-y-16 custom-scrollbar flex-grow">
-              <section className="bg-neutral-950 rounded-[3rem] p-10 border-2 border-amber-900/30 shadow-inner">
-                 <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+            <div className="overflow-y-auto p-12 space-y-16 custom-scrollbar">
+              <section className="bg-black/40 rounded-[2.5rem] p-10 border border-neutral-800/50">
+                 <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-12">
                     <div className="flex items-center gap-6">
-                       <div className="w-14 h-14 rounded-2xl bg-amber-950/30 border border-amber-500/30 flex items-center justify-center text-2xl">⚖️</div>
+                       <div className="w-14 h-14 rounded-2xl bg-neutral-950 flex items-center justify-center text-2xl border border-neutral-800">⚖️</div>
                        <div>
-                          <h4 className="font-black text-2xl text-neutral-100 tracking-tight">Body Mass Tracking</h4>
-                          <p className="text-[10px] font-black uppercase text-amber-500 tracking-widest">Daily Summit Verification</p>
+                          <h4 className="font-black text-xl text-white">Weight Logs</h4>
+                          <p className="text-[9px] font-black uppercase text-neutral-500 tracking-widest">Persistent Local Vault</p>
+                       </div>
+                    </div>
+                    <div className="space-y-3">
+                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Alpha (H)</label>
+                       <input 
+                         type="number" step="0.1"
+                         value={weightData[`${selectedDay.month}_${selectedDay.date}`]?.husband || ''}
+                         onChange={(e) => handleWeightChange(selectedDay.month, selectedDay.date, 'husband', e.target.value)}
+                         className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-2xl font-black text-amber-500 focus:outline-none focus:border-amber-500/50"
+                         placeholder="91.0"
+                       />
+                    </div>
+                    <div className="space-y-3">
+                       <label className="text-[9px] font-black uppercase text-neutral-500 tracking-widest block ml-1">Beta (W)</label>
+                       <input 
+                         type="number" step="0.1"
+                         value={weightData[`${selectedDay.month}_${selectedDay.date}`]?.wife || ''}
+                         onChange={(e) => handleWeightChange(selectedDay.month, selectedDay.date, 'wife', e.target.value)}
+                         className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl p-4 text-2xl font-black text-rose-400 focus:outline-none focus:border-rose-400/50"
+                         placeholder="54.0"
+                       />
+                    </div>
+                 </div>
+              </section>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                 <div className="space-y-10">
+                    <h4 className="text-xl font-black text-neutral-400 uppercase tracking-widest border-b border-neutral-800 pb-4">Culinary Specs</h4>
+                    <div className="grid grid-cols-2 gap-6 text-center">
+                       <div className="bg-neutral-950 p-6 rounded-3xl border border-neutral-800">
+                          <p className="text-[9px] font-black text-neutral-600 uppercase mb-2">Alpha Energy</p>
+                          <p className="text-3xl font-black text-white">{Math.round((currentRecipe?.calories || 0) * 1.2)}<span className="text-xs ml-1 opacity-50">kcal</span></p>
+                          <p className="text-[9px] font-bold text-emerald-500 mt-2">{Math.round((currentRecipe?.protein || 0) * 1.2)}g Protein</p>
+                       </div>
+                       <div className="bg-neutral-950 p-6 rounded-3xl border border-neutral-800">
+                          <p className="text-[9px] font-black text-neutral-600 uppercase mb-2">Beta Energy</p>
+                          <p className="text-3xl font-black text-white">{Math.round((currentRecipe?.calories || 0) * 0.8)}<span className="text-xs ml-1 opacity-50">kcal</span></p>
+                          <p className="text-[9px] font-bold text-rose-400 mt-2">{Math.round((currentRecipe?.protein || 0) * 0.8)}g Protein</p>
                        </div>
                     </div>
                     
-                    <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest block ml-2">Husband Log (kg)</label>
-                          <input 
-                            type="number"
-                            step="0.1"
-                            value={weightData[selectedDay.date]?.husband || ''}
-                            onChange={(e) => handleWeightChange(selectedDay.date, 'husband', e.target.value)}
-                            placeholder="e.g. 90.5"
-                            className="w-full bg-neutral-900 border-2 border-neutral-800 rounded-2xl p-4 text-2xl font-black text-neutral-100 focus:border-amber-500/50 focus:outline-none transition-all placeholder:text-neutral-800"
-                          />
+                    <div className="bg-neutral-950 p-8 rounded-[2rem] border border-neutral-800 space-y-6">
+                       <div>
+                          <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3">Lunch Window (12:00)</p>
+                          <p className="text-sm font-bold text-neutral-100">{selectedDay.lunch.name}</p>
+                          <p className="text-xs text-neutral-500 italic mt-1">{selectedDay.lunch.description}</p>
                        </div>
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black uppercase text-neutral-500 tracking-widest block ml-2">Wife Log (kg)</label>
-                          <input 
-                            type="number"
-                            step="0.1"
-                            value={weightData[selectedDay.date]?.wife || ''}
-                            onChange={(e) => handleWeightChange(selectedDay.date, 'wife', e.target.value)}
-                            placeholder="e.g. 53.2"
-                            className="w-full bg-neutral-900 border-2 border-neutral-800 rounded-2xl p-4 text-2xl font-black text-neutral-100 focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-neutral-800"
-                          />
+                       <div className="h-px bg-neutral-800"></div>
+                       <div>
+                          <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3">Metabolic Snack (16:00)</p>
+                          <p className="text-sm font-bold text-neutral-100">{selectedDay.snack.name}</p>
+                          <p className="text-xs text-neutral-500 italic mt-1">{selectedDay.snack.description}</p>
                        </div>
                     </div>
                  </div>
-                 <div className="mt-8 flex justify-end">
-                    <p className="text-[9px] font-black uppercase text-neutral-600 tracking-widest">Progress recorded to local vault</p>
-                 </div>
-              </section>
 
-              <section>
-                <div className="flex items-center gap-8 mb-10">
-                  <h4 className="text-xs font-black text-neutral-600 uppercase tracking-[0.6em]">Training Cadence</h4>
-                  <div className="h-px flex-grow bg-neutral-800"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                   <WorkoutDisplay person="Husband" workout={selectedDay.husbandWorkout} accent="bg-amber-600" />
-                   <WorkoutDisplay person="Wife" workout={selectedDay.wifeWorkout} accent="bg-emerald-700" />
-                </div>
-              </section>
-
-              <section className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                 <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div className="bg-neutral-950 rounded-[3rem] p-10 text-neutral-200 shadow-2xl border border-amber-500/10">
-                      <div className="flex items-center justify-between mb-10">
-                        <h4 className="font-black text-2xl tracking-tighter italic text-amber-500">Alpha Intake</h4>
-                        <span className="bg-amber-500/10 text-amber-500 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-500/30">85kg Peak</span>
-                      </div>
-                      {currentRecipe && (
-                        <div className="grid grid-cols-3 gap-8 text-center pb-10 border-b border-neutral-800 mb-8">
-                          <div>
-                             <p className="text-[10px] font-black uppercase text-neutral-600 tracking-widest mb-1">Kcal</p>
-                             <p className="text-4xl font-black tabular-nums text-neutral-100">{Math.round((currentRecipe.calories || 0) * multipliers.husband)}</p>
-                          </div>
-                          <div>
-                             <p className="text-[10px] font-black uppercase text-neutral-600 tracking-widest mb-1">P</p>
-                             <p className="text-4xl font-black tabular-nums text-emerald-500">{Math.round((currentRecipe.protein || 0) * multipliers.husband)}g</p>
-                          </div>
-                          <div>
-                             <p className="text-[10px] font-black uppercase text-neutral-600 tracking-widest mb-1">C</p>
-                             <p className="text-4xl font-black tabular-nums text-amber-500">{Math.round((currentRecipe.carbs || 0) * multipliers.husband)}g</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-neutral-950 rounded-[3rem] p-10 border border-emerald-500/10 shadow-2xl">
-                      <div className="flex items-center justify-between mb-10">
-                        <h4 className="font-black text-2xl tracking-tighter italic text-emerald-500">Beta Intake</h4>
-                        <span className="bg-emerald-500/10 text-emerald-500 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">48kg Peak</span>
-                      </div>
-                      {currentRecipe && (
-                        <div className="grid grid-cols-3 gap-8 text-center pb-10 border-b border-neutral-800 mb-8 text-neutral-100">
-                          <div>
-                             <p className="text-[10px] font-black uppercase text-neutral-600 tracking-widest mb-1">Kcal</p>
-                             <p className="text-4xl font-black tabular-nums">{Math.round((currentRecipe.calories || 0) * multipliers.wife)}</p>
-                          </div>
-                          <div>
-                             <p className="text-[10px] font-black uppercase text-neutral-600 tracking-widest mb-1">P</p>
-                             <p className="text-4xl font-black tabular-nums text-emerald-500">{Math.round((currentRecipe.protein || 0) * multipliers.wife)}g</p>
-                          </div>
-                          <div>
-                             <p className="text-[10px] font-black uppercase text-neutral-600 tracking-widest mb-1">C</p>
-                             <p className="text-4xl font-black tabular-nums text-amber-500">{Math.round((currentRecipe.carbs || 0) * multipliers.wife)}g</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                 </div>
-
-                 <div className="bg-neutral-950 rounded-[3rem] p-10 border border-neutral-800 flex flex-col justify-between shadow-inner">
-                    <div>
-                       <h4 className="text-[10px] font-black text-neutral-600 uppercase tracking-widest mb-10">Intake Window</h4>
-                       <div className="space-y-8">
-                          <div className="flex gap-6">
-                             <span className="w-10 h-10 rounded-xl bg-neutral-800 text-amber-500 flex items-center justify-center text-sm font-black border border-amber-500/20">12</span>
-                             <div>
-                                <p className="text-xs font-black uppercase tracking-widest text-neutral-100">Lunch Protocol</p>
-                                <p className="text-[11px] font-bold text-neutral-500">{selectedDay.lunch.name}</p>
-                             </div>
-                          </div>
-                          <div className="flex gap-6">
-                             <span className="w-10 h-10 rounded-xl bg-neutral-800 text-neutral-200 flex items-center justify-center text-sm font-black border border-neutral-700">15</span>
-                             <div>
-                                <p className="text-xs font-black uppercase tracking-widest text-neutral-100">Macro Snack</p>
-                                <p className="text-[11px] font-bold text-neutral-500">{selectedDay.snack.name}</p>
-                             </div>
-                          </div>
-                          <div className="flex gap-6">
-                             <span className="w-10 h-10 rounded-xl bg-emerald-900 text-emerald-400 flex items-center justify-center text-sm font-black border border-emerald-500/30">19</span>
-                             <div>
-                                <p className="text-xs font-black uppercase tracking-widest text-emerald-400">Peak Meal</p>
-                                <p className="text-[11px] font-bold text-neutral-500 italic">Strict cutoff by 20:00.</p>
-                             </div>
-                          </div>
+                 <div className="space-y-10">
+                    <h4 className="text-xl font-black text-neutral-400 uppercase tracking-widest border-b border-neutral-800 pb-4">Junior Protocol</h4>
+                    <div className="bg-neutral-950 p-10 rounded-[3rem] border border-emerald-500/10 shadow-inner">
+                       <p className="text-2xl font-black text-emerald-500 mb-2 italic">{selectedDay.babyMeal?.name}</p>
+                       <p className="text-xs text-neutral-500 leading-relaxed mb-8">{selectedDay.babyMeal?.description}</p>
+                       <div className="space-y-4">
+                          {RECIPES[selectedDay.babyMeal?.recipeId || '']?.instructions.map((step, i) => (
+                            <div key={i} className="flex gap-4 text-[11px] font-bold text-neutral-400">
+                               <span className="text-emerald-500">{i+1}.</span> {step}
+                            </div>
+                          ))}
                        </div>
                     </div>
                  </div>
+              </div>
+
+              <section className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                 <WorkoutDisplay person="Alpha" workout={selectedDay.husbandWorkout} accent="bg-amber-600" />
+                 <WorkoutDisplay person="Beta" workout={selectedDay.wifeWorkout} accent="bg-rose-600" />
               </section>
             </div>
             
-            {/* Modal Footer - Refined and smaller button as requested */}
-            <div className="p-8 bg-transparent flex justify-center sticky bottom-0 border-t border-amber-500/5">
+            <div className="p-10 bg-black/40 flex justify-center border-t border-neutral-800">
               <button 
                 onClick={() => setSelectedDay(null)}
-                className="w-full md:w-auto px-12 py-3.5 bg-amber-500 text-black rounded-full font-black uppercase tracking-[0.2em] text-xs hover:bg-white hover:scale-105 transition-all shadow-xl active:scale-95"
+                className={`w-full md:w-auto px-20 py-6 ${activeMonth === 0 ? 'bg-amber-500' : 'bg-rose-500'} text-black rounded-[2rem] font-black uppercase tracking-[0.4em] hover:scale-105 transition-all shadow-2xl`}
               >
-                STAY ON TARGET
+                CLOSE PROTOCOL
               </button>
             </div>
           </div>

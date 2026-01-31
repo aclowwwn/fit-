@@ -20,6 +20,7 @@ export interface Workout {
 
 export interface MealPlanDay {
   date: number; // 1 to 31
+  month: number; // 0 for Jan, 1 for Feb
   dayOfWeek: string;
   isCookingDay: boolean;
   lunch: {
