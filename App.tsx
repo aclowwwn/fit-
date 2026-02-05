@@ -54,12 +54,50 @@ const generatePlan = (month: number): MealPlanDay[] => {
     return snacks[day % snacks.length];
   };
 
-  const getWorkouts = (day: number) => {
-    const husbKeys = ['crossfit-alpha', 'bodyweight-strength', 'hiit-metcon'];
-    const wifeKeys = ['pilates-core', 'pilates-flow', 'bodyweight-strength'];
+  const getWorkouts = (m: number, d: number) => {
+    // If January, use cycle
+    if (m === 0) {
+      const husbKeys = ['crossfit-alpha', 'bodyweight-strength', 'hiit-metcon'];
+      const wifeKeys = ['pilates-core', 'pilates-flow', 'bodyweight-strength'];
+      return {
+        husband: WORKOUTS[husbKeys[d % husbKeys.length]],
+        wife: WORKOUTS[wifeKeys[d % wifeKeys.length]]
+      };
+    }
+
+    // February Specific Mapping
+    const febSpecific: Record<number, {h: string, w: string}> = {
+      5: { h: 'feb5-husb', w: 'feb5-wife' },
+      6: { h: 'feb6-both', w: 'feb6-both' },
+      9: { h: 'feb9-husb', w: 'feb9-wife' },
+      10: { h: 'feb10-both', w: 'feb10-both' },
+      11: { h: 'feb11-both', w: 'feb11-both' },
+      12: { h: 'feb12-husb', w: 'feb12-wife' },
+      13: { h: 'feb13-both', w: 'feb13-both' },
+      16: { h: 'feb16-husb', w: 'feb16-wife' },
+      17: { h: 'feb17-both', w: 'feb17-both' },
+      18: { h: 'feb18-both', w: 'feb18-both' },
+      19: { h: 'feb19-husb', w: 'feb19-wife' },
+      20: { h: 'feb20-both', w: 'feb20-both' },
+      23: { h: 'feb23-husb', w: 'feb23-wife' },
+      24: { h: 'feb24-both', w: 'feb24-both' },
+      25: { h: 'feb25-both', w: 'feb25-both' },
+      26: { h: 'feb26-husb', w: 'feb26-wife' },
+      27: { h: 'feb27-both', w: 'feb27-both' },
+    };
+
+    const specific = febSpecific[d];
+    if (specific) {
+      return {
+        husband: WORKOUTS[specific.h],
+        wife: WORKOUTS[specific.w]
+      };
+    }
+
+    // Default for weekends or unmapped days
     return {
-      husband: WORKOUTS[husbKeys[day % husbKeys.length]],
-      wife: WORKOUTS[wifeKeys[day % wifeKeys.length]]
+      husband: WORKOUTS['recovery-base'],
+      wife: WORKOUTS['recovery-base']
     };
   };
 
@@ -70,7 +108,7 @@ const generatePlan = (month: number): MealPlanDay[] => {
     const baby: { name: string; recipeId: string; description?: string } = isJan 
       ? { name: 'Beef & Root Puree', recipeId: 'baby-beef-veggie', description: 'Mild blend.' } 
       : getFebBaby(d);
-    const w = getWorkouts(d);
+    const w = getWorkouts(month, d);
 
     plan.push({
       date: d,
@@ -110,7 +148,9 @@ type WeightEntry = { husband: string; wife: string };
 type WeightData = Record<string, WeightEntry>;
 
 const App: React.FC = () => {
-  const [activeMonth, setActiveMonth] = useState(0); // 0 = Jan, 1 = Feb
+  // Initialize to current month, capped at Feb (1)
+  const initialMonth = Math.min(new Date().getMonth(), 1);
+  const [activeMonth, setActiveMonth] = useState(initialMonth); 
   const mealPlan = useMemo(() => generatePlan(activeMonth), [activeMonth]);
   const [selectedDay, setSelectedDay] = useState<MealPlanDay | null>(null);
   const [weightData, setWeightData] = useState<WeightData>(() => {

@@ -17,6 +17,7 @@ export const INVENTORY: InventoryItem[] = [
 ];
 
 export const WORKOUTS: Record<string, Workout> = {
+  // Base Jan/Placeholder Workouts
   'crossfit-alpha': {
     title: 'CrossFit: Power & Burn',
     type: 'CrossFit',
@@ -31,26 +32,198 @@ export const WORKOUTS: Record<string, Workout> = {
     exercises: ['3 Sets of:', '15 Air Squats', '12 Diamond Push-ups', '20 Walking Lunges', '45 Sec Plank'],
     cooldown: ['Quad Stretch', 'Hamstring Stretch', 'Cobra Pose']
   },
-  'pilates-core': {
-    title: 'Pilates: Precision Core',
-    type: 'Pilates',
-    warmup: ['The Hundred Prep', 'Neck Rolls', 'Spine Stretch Forward'],
-    exercises: ['10 The Hundred', '15 Single Leg Circles', '10 Rolling Like a Ball', '12 Scissor Kicks'],
-    cooldown: ['Butterfly Stretch', 'Seated Forward Fold']
+  // FEBRUARY SPECIFIC - COUPLES PLAN
+  // THU FEB 5
+  'feb5-husb': {
+    title: 'Freeletics (Moderate)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Squats × 25', 'Push-ups × 12', 'Mountain climbers × 30', 'Plank × 40s'],
+    cooldown: ['5-8 min Standard Routine']
   },
-  'pilates-flow': {
-    title: 'Total Body Pilates Flow',
-    type: 'Pilates',
-    warmup: ['Pelvic Tilts', 'Chest Lifts', 'Arm Reaches'],
-    exercises: ['12 Leg Pull Front', '15 Side Leg Series', '10 Swan Dive', '20 Criss-Cross'],
-    cooldown: ['Cat-Cow', 'Pigeon Pose']
+  'feb5-wife': {
+    title: 'Freeletics (Easy)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Squats × 15', 'Knee push-ups × 8', 'Marching in place × 30', 'Plank (knees) × 20s'],
+    cooldown: ['5-8 min Standard Routine']
   },
-  'hiit-metcon': {
-    title: 'HIIT MetCon Blast',
-    type: 'CrossFit',
-    warmup: ['Running on spot (3 mins)', 'Inchworms (5 reps)', 'Mountain Climbers (30 secs)'],
-    exercises: ['EMOM 15 mins:', 'Min 1: 15 Goblet Squats', 'Min 2: 15 Sit-ups', 'Min 3: 10 Sprawls'],
-    cooldown: ['Chest Stretch', 'Tricep Stretch', 'Calf Stretch']
+  // FRI FEB 6
+  'feb6-both': {
+    title: 'Pilates (Pace-Adjusted)',
+    type: 'Pilates',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['Pelvic tilts × 10', 'Dead bug × 6/side', 'Glute bridge × 12', 'Side-lying leg lifts × 10/side', 'Seated spine stretch × 6'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // MON FEB 9
+  'feb9-husb': {
+    title: 'Freeletics (Moderate)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Jump squats × 15', 'Push-ups × 15', 'Sit-ups × 20', 'High knees × 40'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  'feb9-wife': {
+    title: 'Freeletics (Easy)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Squats × 15', 'Incline push-ups × 8', 'Crunches × 10', 'Marching × 30'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // TUE FEB 10
+  'feb10-both': {
+    title: 'Pilates: Core Stability',
+    type: 'Pilates',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['Cat–cow × 8', 'Heel slides × 10/side', 'Clamshells × 12/side', 'Arm circles (controlled) × 10', 'Child’s pose × 60s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // WED FEB 11
+  'feb11-both': {
+    title: 'Recovery + Walk',
+    type: 'Bodyweight', // Using as placeholder for recovery
+    warmup: ['Brisk walk 20–30 min'],
+    exercises: ['Light stretching 10 min'],
+    cooldown: ['Breathe & Hydrate']
+  },
+  // THU FEB 12
+  'feb12-husb': {
+    title: 'Freeletics (Moderate)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Lunges × 12/leg', 'Pike push-ups × 8', 'Mountain climbers × 40', 'Plank × 45s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  'feb12-wife': {
+    title: 'Freeletics (Easy)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Reverse lunges × 8/leg', 'Wall push-ups × 8', 'Step jacks × 30', 'Plank (knees) × 25s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // FRI FEB 13
+  'feb13-both': {
+    title: 'Pilates: Flexibility',
+    type: 'Pilates',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['Pelvic clock × 6', 'Glute bridge hold × 20s × 3', 'Side kick series × 8/side', 'Seated hamstring stretch × 45s/side'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // MON FEB 16
+  'feb16-husb': {
+    title: 'Freeletics (Moderate)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['3 Rounds:', 'Squats × 30', 'Push-ups × 15', 'Sit-ups × 25', 'Plank × 45s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  'feb16-wife': {
+    title: 'Freeletics (Easy)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Squats × 18', 'Knee push-ups × 10', 'Crunches × 12', 'Plank (knees) × 30s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // TUE FEB 17
+  'feb17-both': {
+    title: 'Pilates: Flow',
+    type: 'Pilates',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['Dead bug × 6/side', 'Single-leg glute bridge × 8/side', 'Standing roll-down × 6', 'Chest opener stretch × 45s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // WED FEB 18
+  'feb18-both': {
+    title: 'Recovery + Walk',
+    type: 'Bodyweight',
+    warmup: ['Walk 25–35 min'],
+    exercises: ['Mobility flow 10 min'],
+    cooldown: ['Relax']
+  },
+  // THU FEB 19
+  'feb19-husb': {
+    title: 'Freeletics (Moderate)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Burpees × 8', 'Jump squats × 20', 'Push-ups × 15', 'Plank × 60s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  'feb19-wife': {
+    title: 'Freeletics (Easy)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Step-back burpees × 5', 'Squats × 15', 'Incline push-ups × 10', 'Plank (knees) × 30s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // FRI FEB 20
+  'feb20-both': {
+    title: 'Pilates: Core Twist',
+    type: 'Pilates',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['Pelvic tilts × 10', 'Side-lying leg circles × 8/side', 'Spine twist supine × 6/side', 'Child’s pose × 60s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // MON FEB 23
+  'feb23-husb': {
+    title: 'Freeletics (Moderate)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['3 Rounds:', 'Squats × 35', 'Push-ups × 18', 'Mountain climbers × 50', 'Plank × 60s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  'feb23-wife': {
+    title: 'Freeletics (Easy)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Squats × 20', 'Knee push-ups × 12', 'Marching × 40', 'Plank (knees) × 30s'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // TUE FEB 24
+  'feb24-both': {
+    title: 'Pilates: Alignment',
+    type: 'Pilates',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['Cat–cow × 8', 'Dead bug × 6/side', 'Clamshells × 12/side', 'Seated spinal twist × 30s/side'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // WED FEB 25
+  'feb25-both': {
+    title: 'Recovery + Walk',
+    type: 'Bodyweight',
+    warmup: ['Walk 30–40 min'],
+    exercises: ['Long stretch 10–15 min'],
+    cooldown: ['Reset']
+  },
+  // THU FEB 26
+  'feb26-husb': {
+    title: 'Freeletics (Moderate)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Burpees × 10', 'Squats × 30', 'Push-ups × 20', 'Sit-ups × 25'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  'feb26-wife': {
+    title: 'Freeletics (Easy)',
+    type: 'Bodyweight',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['2 Rounds:', 'Step-back burpees × 6', 'Squats × 18', 'Incline push-ups × 12', 'Crunches × 15'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  // FRI FEB 27
+  'feb27-both': {
+    title: 'Pilates (Reset)',
+    type: 'Pilates',
+    warmup: ['5-8 min Standard Routine'],
+    exercises: ['Pelvic tilts × 10', 'Glute bridges × 15', 'Side-lying leg lifts × 12/side', 'Full-body stretch 10 min'],
+    cooldown: ['5-8 min Standard Routine']
+  },
+  'recovery-base': {
+    title: 'Rest & Recovery',
+    type: 'Bodyweight',
+    warmup: ['Deep Breathing'],
+    exercises: ['Active Recovery / Foam Rolling'],
+    cooldown: ['Hydration']
   }
 };
 
